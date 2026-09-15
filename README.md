@@ -32,7 +32,7 @@ repeating a successful post creates a duplicate.
 
 ## Development
 
-Node.js 22 and npm:
+Node.js 22.12+ and npm:
 
 ```sh
 npm ci
@@ -40,11 +40,20 @@ npm run check
 npm test
 ```
 
-Tests are framework-free `node:assert/strict` smoke tests run with `tsx`. They call
+Tests use Vitest in the Node environment; `npm test` runs once for CI. The
+`src/**/*.test.ts` files contain separate `describe`/`it` cases, so a failing test
+does not prevent later tests from running. They call
 the exported handlers with fake Slack responses and inspect request bodies,
 headers, normalization, errors, pagination and rate limiting. They also validate
 the generated manifest and exercise real SDK signing verification and credential
 redemption against fake endpoints. They require no live Slack credentials.
+
+Export CI results with Vitest's built-in reporters, for example:
+
+```sh
+npm test -- --reporter=junit --outputFile=/tmp/slack-tests.xml
+npm test -- --reporter=json --outputFile=/tmp/slack-tests.json
+```
 
 ## Configuration and manual deployment
 
@@ -83,5 +92,5 @@ core bricks live in the platform and are not implemented here.
 
 V1 includes no Slack interactivity endpoint, signing-secret storage, button-click
 handling, dedicated approval brick, or file downloading. There is no Cloudflare
-rate-limiter binding. CI runs only install, typecheck and smoke tests: no deploy,
+rate-limiter binding. CI runs only install, typecheck and Vitest tests: no deploy,
 `/plugins/upload`, or live end-to-end wiring.
