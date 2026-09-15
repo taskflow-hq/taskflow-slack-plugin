@@ -1,0 +1,22 @@
+{
+  "name": "taskflow-slack-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "tsx src/bricks.smoke.ts",
+    "deploy:staging": "wrangler deploy --name taskflow-slack-plugin-staging"
+  },
+  "dependencies": {
+    "@flowbrew/plugin-sdk": "^0.2.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260823.1",
+    "@types/node": "^22.20.1",
+    "tsx": "^4.20.5",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.33.1"
+  }
+}
