@@ -39,8 +39,19 @@ export function createSlackWorker(baseUrl: string, origin: string, fetchImpl: ty
 
 export type Env = { TASKFLOW_ORIGIN: string };
 
+// Preserve the SDK's discovery/JWKS caches across requests in this isolate.
+let memoized: {
+  baseUrl: string;
+  origin: string;
+  worker: ReturnType<typeof createSlackWorker>;
+} | undefined;
+
 export default {
   fetch(request: Request, env: Env) {
-    return createSlackWorker(new URL(request.url).origin, env.TASKFLOW_ORIGIN).fetch(request);
+    const baseUrl = new URL(request.url).origin;
+    if (!memoized || memoized.baseUrl !== baseUrl || memoized.origin !== env.TASKFLOW_ORIGIN) {
+      memoized = { baseUrl, origin: env.TASKFLOW_ORIGIN, worker: createSlackWorker(baseUrl, env.TASKFLOW_ORIGIN) };
+    }
+    return memoized.worker.fetch(request);
   },
 };

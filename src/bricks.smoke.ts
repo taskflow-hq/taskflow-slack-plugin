@@ -309,6 +309,7 @@ const origin = "https://platform.example.test";
 const issuer = "https://auth.example.test";
 const originalFetch = globalThis.fetch;
 let discoveries = 0;
+let jwksRequests = 0;
 let redemptions = 0;
 let slackRequests = 0;
 async function signedToken(slug: string) {
@@ -327,7 +328,10 @@ try {
       discoveries += 1;
       return Response.json({ issuer, jwksUrl: `${issuer}/jwks`, redemptionUrl: `${issuer}/redeem` });
     }
-    if (address === `${issuer}/jwks`) return Response.json({ keys: [publicKey] });
+    if (address === `${issuer}/jwks`) {
+      jwksRequests += 1;
+      return Response.json({ keys: [publicKey] });
+    }
     if (address === `${issuer}/redeem`) {
       redemptions += 1;
       assert.equal(init?.method, "POST");
@@ -358,8 +362,21 @@ try {
     authored.output.parse(await response.json());
   }
   assert.equal(discoveries, 5);
+  assert.equal(jwksRequests, 5);
   assert.equal(redemptions, 5);
   assert.equal(slackRequests, 5);
+
+  // A second invocation through the deployed entry point must reuse the SDK caches.
+  const repeated = await worker.fetch(new Request(`${baseUrl}/bricks/slack-auth-test`, {
+    method: "POST", headers: { authorization: `Bearer ${await signedToken("slack-auth-test")}`, "content-type": "application/json" },
+    body: "{}",
+  }), { TASKFLOW_ORIGIN: origin });
+  assert.equal(repeated.status, 200, await repeated.clone().text());
+  assert.deepEqual(await repeated.json(), { ...authExpected, scopes: [], missingScopes: [...MINIMUM_SCOPES] });
+  assert.equal(discoveries, 5, "Repeated invocations must reuse discovery configuration");
+  assert.equal(jwksRequests, 5, "Repeated invocations must reuse JWKS");
+  assert.equal(redemptions, 6);
+  assert.equal(slackRequests, 6);
   const wrongBrick = await worker.fetch(new Request(`${baseUrl}/bricks/slack-list-users`, {
     method: "POST", headers: { authorization: `Bearer ${await signedToken("slack-auth-test")}` }, body: "{}",
   }), { TASKFLOW_ORIGIN: origin });
@@ -368,8 +385,8 @@ try {
     method: "POST", headers: { authorization: `Bearer ${await signedToken("slack-auth-test")}` }, body: JSON.stringify({ token }),
   }), { TASKFLOW_ORIGIN: origin });
   assert.equal(invalidInput.status, 400);
-  assert.equal(redemptions, 5);
-  assert.equal(slackRequests, 5);
+  assert.equal(redemptions, 6);
+  assert.equal(slackRequests, 6);
 } finally {
   globalThis.fetch = originalFetch;
 }
