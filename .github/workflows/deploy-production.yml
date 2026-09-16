@@ -1,0 +1,36 @@
+name: Deploy Production
+
+# Git tag push (v*) -> deploy production on the dedicated Taskflow Cloudflare account.
+# Secrets (repo → Settings → Secrets → Actions): CLOUDFLARE_API_TOKEN, CLOUDFLARE_DEFAULT_ACCOUNT_ID, PROD_SLACK_PLUGIN_API_KEY.
+
+on:
+  push:
+    tags: ['v*']
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Tests (gate)
+        run: npm test
+      - name: Deploy Worker
+        run: npm run deploy:production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_DEFAULT_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_DEFAULT_ACCOUNT_ID }}
+      - name: Publish Slack plugin manifest
+        run: npm run publish-manifest
+        env:
+          SLACK_PLUGIN_API_KEY: ${{ secrets.PROD_SLACK_PLUGIN_API_KEY }}
+          PLUGIN_BASE_URL: https://taskflow-slack-plugin.taskflow-app.workers.dev
+          MCP_ORIGIN: https://mcp.flowbrew.app
