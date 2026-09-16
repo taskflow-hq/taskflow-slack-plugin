@@ -24,13 +24,20 @@ jobs:
       - name: Tests (gate)
         run: npm test
       - name: Deploy Worker
-        run: npm run deploy:staging
+        id: deploy
+        run: |
+          npx sst deploy --stage staging
+          node -e '
+            const { pluginUrl } = require("./.sst/outputs.json");
+            if (!pluginUrl) throw new Error("SST output pluginUrl is missing");
+            console.log("plugin_url=" + new URL(pluginUrl).origin);
+          ' >> "$GITHUB_OUTPUT"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_DEFAULT_ACCOUNT_ID }}
+          CLOUDFLARE_DEFAULT_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_DEFAULT_ACCOUNT_ID }}
       - name: Publish Slack plugin manifest
         run: npm run publish-manifest
         env:
           SLACK_PLUGIN_API_KEY: ${{ secrets.STAGING_SLACK_PLUGIN_API_KEY }}
-          PLUGIN_BASE_URL: https://taskflow-slack-plugin-staging.taskflow-app.workers.dev
+          PLUGIN_BASE_URL: ${{ steps.deploy.outputs.plugin_url }}
           MCP_ORIGIN: https://mcp.staging.flowbrew.app
