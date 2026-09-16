@@ -6,7 +6,7 @@ export const SLACK_PLUGIN_VERSION = "1.0.0";
 
 export function createSlackPlugin(baseUrl: string) {
   return createPluginDefinition({
-    slug: "slack", name: "Slack", version: SLACK_PLUGIN_VERSION, visibility: "private",
+    slug: "slack", name: "Slack", version: SLACK_PLUGIN_VERSION, visibility: "public",
     connectionTypes: [new BearerConnection("slack", {
       name: "Slack bot token", validationBrick: "slack-auth-test",
     })],
