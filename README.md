@@ -32,6 +32,11 @@ repeating a successful post creates a duplicate.
 
 ## Development
 
+**SDK version pin:** `@flowbrew/plugin-sdk` is pinned to an exact version on purpose.
+Check the SDK CHANGELOG before bumping it: pre-1.0 minor releases can contain
+breaking changes (e.g. 0.5.0 changed the manifest pointer scheme from `https://`
+to `fetch://`).
+
 Node.js 22.12+ and npm:
 
 ```sh

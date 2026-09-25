@@ -10,7 +10,7 @@
     "publish-manifest": "tsx scripts/publish-manifest.ts"
   },
   "dependencies": {
-    "@flowbrew/plugin-sdk": "^0.4.0",
+    "@flowbrew/plugin-sdk": "0.4.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
