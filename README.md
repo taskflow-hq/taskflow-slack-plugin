@@ -1,6 +1,6 @@
-# Taskflow Slack plugin
+# Flowbrew Slack plugin
 
-Standalone Taskflow plugin `slack` v1, deployed as a Cloudflare Worker using the
+Standalone Flowbrew plugin `slack` v1, deployed as a Cloudflare Worker using the
 published `@flowbrew/plugin-sdk` 0.4.x and SST for deployment. It provides four
 Slack actions and one connection validation brick.
 
@@ -74,10 +74,11 @@ The SDK discovers issuer, JWKS and redemption URLs from
 target platform for another environment; there is no fallback if the binding is
 absent. Never configure Slack tokens as Worker vars.
 
-SST uses `home: "cloudflare"`, so state stays in the dedicated Taskflow Cloudflare
-account (`89a9bc440d2181e5427417f4d92b761b`). SST 4.17.1 automatically manages an
-`sst-state` R2 bucket for its own state; no Pulumi Cloud account or separate S3
-backend is needed. SST manages this backend independently of the plugin bindings.
+SST uses `home: "cloudflare"`, so state stays in the dedicated Flowbrew Cloudflare
+account `taskflow-app` (`89a9bc440d2181e5427417f4d92b761b`). SST 4.17.1
+automatically manages an `sst-state` R2 bucket for its own state; no Pulumi Cloud
+account or separate S3 backend is needed. SST manages this backend independently
+of the plugin bindings.
 Production uses `removal: "retain"` to retain the Worker on removal.
 
 ### CI deployment and registration
@@ -98,7 +99,7 @@ Set these repository Actions secrets:
 | Secret | Purpose |
 | --- | --- |
 | `CLOUDFLARE_API_TOKEN` | SST deployment and Cloudflare state access |
-| `CLOUDFLARE_DEFAULT_ACCOUNT_ID` | Dedicated Taskflow account ID above; SST reads this exact variable |
+| `CLOUDFLARE_DEFAULT_ACCOUNT_ID` | Dedicated Flowbrew account ID above; SST reads this exact variable |
 | `STAGING_SLACK_PLUGIN_API_KEY` | Staging manifest upload; requires `plugins:publish:public` |
 | `PROD_SLACK_PLUGIN_API_KEY` | Production manifest upload; requires `plugins:publish:public` |
 
@@ -148,9 +149,9 @@ npx tsx --eval 'import { createSlackPluginManifest } from "./src/manifest.ts"; c
 
 ## For external plugin authors
 
-This repo uses SST for consistency with Taskflow's other deployments. The
+This repo uses SST for consistency with Flowbrew's other deployments. The
 underlying deployable unit is a completely ordinary Cloudflare Worker, and the
-Taskflow plugin protocol does not require SST. Wrangler is a valid, simpler
+Flowbrew plugin protocol does not require SST. Wrangler is a valid, simpler
 alternative for your own plugin.
 
 To use the pre-migration deployment path, create this minimal `wrangler.toml` in
@@ -177,7 +178,7 @@ Choose your own Worker names and platform origin as needed. Use the URL Wrangler
 prints as `PLUGIN_BASE_URL` for manifest registration; the publishing script above
 works with either deploy tool. For a new plugin, define your own manifest slug,
 version, bricks and connection types. Use one deploy tool to manage a given Worker;
-the Taskflow-maintained Workers in this repo are managed by SST.
+the Flowbrew-maintained Workers in this repo are managed by SST.
 
 ## Approvals and deliberate v1 exclusions
 
